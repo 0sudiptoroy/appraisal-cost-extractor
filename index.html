@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Convert the replacement-cost table in your appraisal PDF into a completed Excel workbook.">
+  <meta name="color-scheme" content="light">
+  <title>Appraisal PDF to Excel</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=full-table">
+  <script src="./assets/jszip.min.js" defer></script>
+  <script type="module" src="./app.mjs?v=github-assets"></script>
+</head>
+<body>
+  <svg class="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M10 9v11M4 14.5h16"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M8 14h8m-8 3h5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></symbol>
+  </svg>
+
+  <header class="masthead">
+    <div class="frame masthead-inner">
+      <div class="brand"><span class="brand-icon"><svg><use href="#i-grid"/></svg></span> Appraisal Desk</div>
+      <span class="privacy-badge"><svg><use href="#i-lock"/></svg> Browser processing</span>
+    </div>
+  </header>
+
+  <main class="frame">
+    <section class="intro" aria-labelledby="site-title">
+      <div>
+        <p class="eyebrow"><span></span> REPLACEMENT COST CONVERTER</p>
+        <h1 id="site-title">Appraisal PDF <span>to Excel</span></h1>
+        <p class="intro-description">Upload an appraisal PDF, review the extracted costs, and download your filled Excel workbook.</p>
+      </div>
+      <div class="illustration" aria-hidden="true">
+        <div class="file-card paper-card">
+          <span class="paper-tab">PDF</span>
+          <div class="paper-line long"></div><div class="paper-line"></div>
+          <div class="paper-line long"></div><div class="paper-line short"></div>
+        </div>
+        <div class="connection"><span></span><svg viewBox="0 0 24 24"><path d="M3 12h17m-7-7 7 7-7 7"/></svg></div>
+        <div class="file-card sheet-card">
+          <span class="paper-tab">XLSX</span>
+          <div class="mini-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="workflow">
+      <section class="panel upload-panel" aria-labelledby="upload-title">
+        <div class="panel-heading">
+          <div class="panel-icon"><svg aria-hidden="true"><use href="#i-upload"/></svg></div>
+          <div><h2 id="upload-title">Upload appraisal PDF</h2><p>Choose one text-based replacement cost report.</p></div>
+        </div>
+        <input id="pdf-input" type="file" accept=".pdf,application/pdf" hidden>
+        <div id="drop-zone" class="drop-zone">
+          <div id="empty-upload" class="drop-content">
+            <div class="upload-icon"><svg aria-hidden="true"><use href="#i-file"/></svg></div>
+            <p class="drop-title">Drop your PDF here</p>
+            <button class="button primary" id="choose-file" type="button">Choose PDF <svg aria-hidden="true"><use href="#i-upload"/></svg></button>
+            <p class="file-limit">PDF up to 25 MB</p>
+          </div>
+          <div id="active-upload" class="active-upload" hidden>
+            <div class="file-icon"><svg aria-hidden="true"><use href="#i-file"/></svg></div>
+            <div class="file-info">
+              <p id="file-name" class="file-name"></p>
+              <p id="file-meta" class="file-meta"></p>
+            </div>
+            <button id="replace-file" class="button secondary" type="button">Replace PDF</button>
+            <progress id="read-progress" aria-label="Reading the PDF" hidden></progress>
+          </div>
+        </div>
+        <p id="upload-status" class="upload-status" role="status" aria-live="polite" hidden></p>
+        <p class="local-note"><svg aria-hidden="true"><use href="#i-lock"/></svg> The PDF and Excel data are processed in this browser.</p>
+      </section>
+
+      <aside class="panel output-panel" aria-labelledby="output-title">
+        <div class="panel-heading">
+          <div class="panel-icon"><svg aria-hidden="true"><use href="#i-grid"/></svg></div>
+          <div><h2 id="output-title">Excel output</h2><p>Uses your <strong>Data format</strong> worksheet.</p></div>
+        </div>
+        <dl class="output-list">
+          <div><dt>Item names</dt><dd>A</dd></div>
+          <div><dt>Materials, Labor, Equipment</dt><dd>C–E</dd></div>
+          <div><dt>Total formulas</dt><dd>F</dd></div>
+        </dl>
+        <p class="format-note"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Works with the <strong>Replacement Estimate by Cost Category</strong> table format. Scanned PDFs require a text layer.</span></p>
+      </aside>
+    </div>
+
+    <section id="results" class="panel results" aria-labelledby="results-title" hidden>
+      <div class="results-heading">
+        <div>
+          <div id="result-state" class="result-state"></div>
+          <h2 id="results-title">Extracted costs</h2>
+          <p id="results-subtitle"></p>
+        </div>
+        <a class="button primary" id="download" hidden>
+          Download Excel <svg aria-hidden="true"><use href="#i-download"/></svg>
+        </a>
+      </div>
+      <div class="metrics">
+        <div><span>Cost rows extracted</span><strong id="row-count"></strong></div>
+        <div><span>PDF total</span><strong id="report-total"></strong></div>
+        <div><span>Excel formula total</span><strong id="excel-total"></strong></div>
+      </div>
+      <div id="notes" class="notes" hidden></div>
+      <p id="download-status" class="download-status" role="status" hidden></p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Extracted costs and source pages">
+        <table>
+          <caption>Replacement cost items in US dollars</caption>
+          <thead><tr>
+            <th scope="col">Item name</th><th scope="col">Materials</th><th scope="col">Labor</th>
+            <th scope="col">Equipment</th><th scope="col">Excel total</th><th scope="col">PDF page</th>
+          </tr></thead>
+          <tbody id="cost-rows"></tbody>
+          <tfoot id="cost-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="frame footer"><span>Appraisal Desk</span><span>Replacement cost reports · Excel .xlsx</span></footer>
+</body>
+</html>
